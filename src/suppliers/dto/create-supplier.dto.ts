@@ -8,7 +8,9 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUrl,
   IsUUID,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
@@ -67,7 +69,11 @@ export class CreateSupplierDto {
   organization_id: string;
 
   @IsOptional()
-  @IsString()
+  @ValidateIf(
+    (_, v: unknown) =>
+      v !== undefined && v !== null && String(v).trim() !== '',
+  )
+  @IsUrl({ require_protocol: true, require_tld: false })
   url?: string;
 
   @IsOptional()
@@ -93,6 +99,7 @@ export class CreateSupplierDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
   capabilities?: string[];
 
   @IsOptional()
@@ -119,6 +126,7 @@ export class CreateSupplierDto {
 
   @IsOptional()
   @IsArray()
+  @IsObject({ each: true })
   @ValidateNested({ each: true })
   @Type(() => CategoryItemDto)
   categories?: CategoryItemDto[];

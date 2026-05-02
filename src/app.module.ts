@@ -22,13 +22,22 @@ import { SuppliersModule } from './suppliers/suppliers.module';
           ? configured
           : join(process.cwd(), configured);
         mkdirSync(dirname(database), { recursive: true });
+
+        const nodeEnv = config.get<string>('NODE_ENV', 'development');
+        const dbSync = config.get<string>('DB_SYNC')?.toLowerCase();
+        /** Create/update tables from entities (never rely on this in production). */
+        const synchronize =
+          dbSync === 'true' ||
+          dbSync === '1' ||
+          (dbSync !== 'false' && nodeEnv !== 'production');
+
         return {
           type: 'sqljs' as const,
           location: database,
           autoSave: true,
           entities: [Supplier],
-          synchronize: config.get<string>('DB_SYNC') === 'true',
-          logging: config.get<string>('DB_LOGGING') === 'true',
+          synchronize,
+          logging: config.get<string>('DB_LOGGING')?.toLowerCase() === 'true',
         };
       },
       inject: [ConfigService],
